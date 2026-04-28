@@ -23,4 +23,6 @@ export interface TaskList {
     start: Date;
     end: Date;
     columnId: string;
+    boardId: string;
+    userId: string;
 }

@@ -11,6 +11,7 @@ export interface ITaskList extends Document {
     end: Date;
     columnId: mongoose.Types.ObjectId;
     boardId: mongoose.Types.ObjectId;
+    userId: mongoose.Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -47,7 +48,19 @@ const TaskListSchema = new Schema<ITaskList>(
         },
         end: {
             type: Date,
-        }
+        },
+        boardId: {
+            type: Schema.Types.ObjectId,
+            required: true,
+        },
+        columnId: {
+            type: Schema.Types.ObjectId,
+            required: true,
+        },
+        userId: {
+            type: Schema.Types.ObjectId,
+            required: true,
+        },
     },
     {
         timestamps: true

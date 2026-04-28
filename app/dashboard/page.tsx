@@ -3,16 +3,13 @@ import { getSession } from "@/lib/auth/auth"
 import connectDB from "@/lib/db";
 import { Board } from "@/lib/models";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
-export default async function Dashboard() {
-    const session = await getSession();
-    if(!session?.user) {
-        return redirect("/sign-in");
-    }
-
+async function getBoard(userId: string) {
+    "use cache";
     await connectDB();
-    const board = await Board.findOne({
-        userId: session.user.id,
+    const boardDoc = await Board.findOne({
+        userId: userId,
         name: "Task List"
     }).populate({
         path: "columns", 
@@ -20,6 +17,20 @@ export default async function Dashboard() {
             path: "tasksList"
         }
     });
+
+    if(!boardDoc) return null;
+
+    const board = JSON.parse(JSON.stringify(boardDoc));
+    return board;
+}
+
+async function DasboardPage () {
+    const session = await getSession();
+    if(!session?.user) {
+        return redirect("/sign-in");
+    }
+
+    const board = await getBoard(session.user.id);
     return (
         <div className="min-h-screen bg-white">
             <div className="container mx-auto p-6">
@@ -28,8 +39,18 @@ export default async function Dashboard() {
                     <p className="text-sm text-muted-foreground">Utilize this board to manage your tasks and projects.</p>
                 </div>
                 {/* Board content */}
-                <KanbanBoard board={JSON.parse(JSON.stringify(board))} userId={session.user.id} />
+                <KanbanBoard board={board} userId={session.user.id} />
             </div>
         </div>
+    )
+}
+
+export default async function Dashboard() {
+    return (
+        <Suspense fallback={
+            <p>loading...</p>
+        }>
+            <DasboardPage />
+        </Suspense>
     )
 }
